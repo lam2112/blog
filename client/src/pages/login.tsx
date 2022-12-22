@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import LoginPass from '../components/auth/loginPass'
 import LoginSMS from '../components/auth/LoginSMS'
@@ -11,9 +11,9 @@ const Login = () => {
       <div className='auth_box'>
         <h3 className='text-uppercase text-center mb-4'>Login</h3>
 
-        {sms? <LoginSMS /> : <LoginPass />}
+        {sms ? <LoginSMS /> : <LoginPass />}
 
-        <small className='row my-2 text-primary' style={{cursor: 'pointer'}}>
+        <small className='row my-2 text-primary' style={{ cursor: 'pointer' }}>
           <span className="col-6">
             <Link to='/forgot_password'>
               Forgot password?
@@ -26,9 +26,9 @@ const Login = () => {
           </span>
         </small>
         <p>
-          You don't have an account?
-          <Link to={'/register'} style={{color: 'crimson'}}>
-            {` Register now`}
+          {`You don't have an account? `}
+          <Link to={'/register'} style={{ color: 'crimson' }}>
+            Register now
           </Link>
         </p>
       </div>

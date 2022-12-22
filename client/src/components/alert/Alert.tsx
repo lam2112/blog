@@ -1,5 +1,4 @@
 import { useSelector } from "react-redux"
-// import { ALERT } from "../../redux/types/alertType"
 import { RootStore } from "../../utils/TypeScript"
 import Loading from "./Loading"
 import Toast from "./Toast"

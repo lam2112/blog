@@ -57,14 +57,13 @@ const authCtrl = {
         jwt.verify(active_token, `${process.env.ACTIVE_TOKEN_SECRET}`)
       );
 
-      const newUser = decode;
+      const newUser:any = decode;
       
       if (newUser === null || newUser === undefined)
       return res.status(400).json({ msg: "Invalid authentication" });
       
-
-      // const user = await Users.findOne({account: newUser.account})
-      // if(user) return res.status(400).json({ msg: "Account already exists" });
+      const user = await Users.findOne({account: newUser.account})
+      if(user) return res.status(400).json({ msg: "Account already exists" });
       
       const new_user = new Users(newUser);
       await new_user.save();
@@ -119,7 +118,7 @@ const authCtrl = {
 
       const access_token = generateAccessToken({ id: user._id });
 
-      res.json({ access_token });
+      res.json({ access_token, user });
     } catch (err: any) {
       return res.status(500).json({ msg: err });
     }

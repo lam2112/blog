@@ -2,7 +2,7 @@ import { Dispatch } from "redux";
 import { AUTH, IAuthType } from "../types/AuthType";
 import { ALERT, IAlertType } from "../types/alertType";
 import { IUserLogin, IUserRegister } from "../../utils/TypeScript";
-import { postAPI } from "../../utils/FetchData";
+import { postAPI, getAPI } from "../../utils/FetchData";
 import { validRegister } from "../../utils/Valid";
 
 export const login =
@@ -11,9 +11,11 @@ export const login =
     try {
       dispatch({ type: ALERT, payload: { loading: true } });
       const res = await postAPI("login", userLogin);
-      
+
       dispatch({ type: AUTH, payload: res.data });
       dispatch({ type: ALERT, payload: { success: res.data.msg } });
+
+      localStorage.setItem("logged", "TQLam");
     } catch (err: any) {
       console.log(err.response.data.msg);
       dispatch({ type: ALERT, payload: { errors: err.response.data.msg } });
@@ -32,9 +34,37 @@ export const register =
     try {
       dispatch({ type: ALERT, payload: { loading: true } });
       const res = await postAPI("register", userRegister);
-      console.log(res);
 
-      dispatch({ type: ALERT, payload: { success: "Register success" } });
+      dispatch({ type: ALERT, payload: { success: res.data.msg } });
+    } catch (err: any) {
+      console.log(err.response.data.msg);
+      dispatch({ type: ALERT, payload: { errors: err.response.data.msg } });
+    }
+  };
+
+export const refreshToken =
+  () => async (dispatch: Dispatch<IAuthType | IAlertType>) => {
+    const logged = localStorage.getItem("logged");
+    if (logged !== "TQLam") return;
+
+    try {
+      dispatch({ type: ALERT, payload: { loading: true } });
+      const res = await getAPI("refresh_token");
+
+      dispatch({ type: AUTH, payload: res.data });
+      dispatch({ type: ALERT, payload: {} });
+    } catch (err: any) {
+      console.log(err.response.data.msg);
+      dispatch({ type: ALERT, payload: { errors: err.response.data.msg } });
+    }
+  };
+
+export const logout =
+  () => async (dispatch: Dispatch<IAuthType | IAlertType>) => {
+    try {
+      localStorage.removeItem("logged");
+      await getAPI("logout");
+      window.location.href = "/";
     } catch (err: any) {
       console.log(err.response.data.msg);
       dispatch({ type: ALERT, payload: { errors: err.response.data.msg } });

@@ -11,15 +11,8 @@ export const login =
     try {
       dispatch({ type: ALERT, payload: { loading: true } });
       const res = await postAPI("login", userLogin);
-      console.log(res);
-
-      dispatch({
-        type: AUTH,
-        payload: {
-          token: res.data.token,
-          user: res.data.user,
-        },
-      });
+      
+      dispatch({ type: AUTH, payload: res.data });
       dispatch({ type: ALERT, payload: { success: res.data.msg } });
     } catch (err: any) {
       console.log(err.response.data.msg);
@@ -38,11 +31,10 @@ export const register =
 
     try {
       dispatch({ type: ALERT, payload: { loading: true } });
-      const res = await postAPI ('register', userRegister);
+      const res = await postAPI("register", userRegister);
       console.log(res);
 
-      dispatch({ type: ALERT, payload: { success: 'Register success' }})
-
+      dispatch({ type: ALERT, payload: { success: "Register success" } });
     } catch (err: any) {
       console.log(err.response.data.msg);
       dispatch({ type: ALERT, payload: { errors: err.response.data.msg } });

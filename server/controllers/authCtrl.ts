@@ -57,25 +57,22 @@ const authCtrl = {
         jwt.verify(active_token, `${process.env.ACTIVE_TOKEN_SECRET}`)
       );
 
-      console.log(decode);
       const newUser = decode;
-      const user = new Users(newUser);
-
-      if (!newUser)
-        return res.status(400).json({ msg: "Invalid authentication" });
-
-      await user.save();
-      res.json({ msg: "Account has been activated!" });
-    } catch (err) {
-      let errMsg;
       
-      if (err.code === 11000) {
-        errMsg = Object.keys(err.keyValue)[0] + " already exit";
-      } else {
-        let name = Object.keys(err.keyValue)[0];
-        errMsg = err.errors[`${name}`].message;
-      }
-      return res.status(500).json({ msg: errMsg });
+      if (newUser === null || newUser === undefined)
+      return res.status(400).json({ msg: "Invalid authentication" });
+      
+
+      // const user = await Users.findOne({account: newUser.account})
+      // if(user) return res.status(400).json({ msg: "Account already exists" });
+      
+      const new_user = new Users(newUser);
+      await new_user.save();
+      res.json({ msg: "Account has been activated!" });
+      
+    } catch (err: any) {
+      
+      return res.status(500).json({ msg: err.message });
     }
   },
 
@@ -91,7 +88,7 @@ const authCtrl = {
       loginUser(user, password, res);
 
       // res.json({ msg: "Login successful!" });
-    } catch (err) {
+    } catch (err: any) {
       return res.status(500).json({ msg: err });
     }
   },
@@ -100,7 +97,7 @@ const authCtrl = {
     try {
       res.clearCookie("refreshtoken", { path: "/api/refresh_token" });
       return res.json({ msg: "Logout successful!" });
-    } catch (err) {
+    } catch (err: any) {
       return res.status(500).json({ msg: err });
     }
   },
@@ -123,7 +120,7 @@ const authCtrl = {
       const access_token = generateAccessToken({ id: user._id });
 
       res.json({ access_token });
-    } catch (err) {
+    } catch (err: any) {
       return res.status(500).json({ msg: err });
     }
   },

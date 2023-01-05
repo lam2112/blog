@@ -18,7 +18,7 @@ export interface INewUser {
 
 export interface IDecodeToken {
     id?: string,
-    newUser?: INewUser,
+    newUser: INewUser,
     iat: number,
     axp: number
 }

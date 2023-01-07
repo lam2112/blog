@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { Link, useHistory } from 'react-router-dom'
 import LoginPass from '../components/auth/loginPass'
 import LoginSMS from '../components/auth/LoginSMS'
+import SocialLogin from '../components/auth/SocialLogin'
 import { RootStore } from '../utils/TypeScript'
 
 
@@ -21,6 +22,7 @@ const Login = () => {
       <div className='auth_box'>
         <h3 className='text-uppercase text-center mb-4'>Login</h3>
 
+        <SocialLogin />
         {sms ? <LoginSMS /> : <LoginPass />}
 
         <small className='row my-2 text-primary' style={{ cursor: 'pointer' }}>

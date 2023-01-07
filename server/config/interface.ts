@@ -22,3 +22,18 @@ export interface IDecodeToken {
     iat: number,
     axp: number
 }
+
+export interface IGPayload {
+    email: string,
+    email_verified?: string,
+    name: string,
+    picture: string
+}
+
+export interface IUserParams{
+    name: string,
+    account: string,
+    password: string,
+    avatar?: string,
+    type: string
+}

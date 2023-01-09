@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
-import { Dispatch } from "redux";
+// import { Dispatch } from "redux";
 import PageRender from "./pageRender";
 import Header from "./components/globals/Header";
 import Footer from "./components/globals/Footer";

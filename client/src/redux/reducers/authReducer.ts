@@ -1,4 +1,3 @@
-import { token } from "morgan";
 import { AUTH, IAuth, IAuthType } from "../types/AuthType";
 
 const authReducer = (state: IAuth = {}, action: IAuthType): IAuth => {

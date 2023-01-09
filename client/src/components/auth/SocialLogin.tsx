@@ -1,18 +1,20 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
-import {GoogleLogin, GoogleLoginResponse} from 'react-google-login-lite';
+// import {GoogleLogin} from 'react-google-login-lite';
+// import { GoogleLoginResponse} from 'react-google-login-lite';
 import {FacebookLogin, FacebookLoginAuthResponse} from 'react-facebook-login-lite';
-import { googleLogin, facebookLogin } from '../../redux/actions/authAction';
+// import { googleLogin } from '../../redux/actions/authAction';
+  import { facebookLogin } from '../../redux/actions/authAction';
 
 
 
 const SocialLogin = () => {
   const dispatch = useDispatch()
 
-  const onSuccess = (googleUser: GoogleLoginResponse) => {
-    const id_token = googleUser.getAuthResponse().id_token;
-    dispatch(googleLogin(id_token))
-  }
+  // const onSuccess = (googleUser: GoogleLoginResponse) => {
+  //   const id_token = googleUser.getAuthResponse().id_token;
+  //   dispatch(googleLogin(id_token))
+  // }
 
   const onFBSuccess = (response: FacebookLoginAuthResponse) => {
     const {accessToken, userID} = response.authResponse

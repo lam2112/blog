@@ -3,7 +3,7 @@ import { AUTH, IAuthType } from "../types/AuthType";
 import { ALERT, IAlertType } from "../types/alertType";
 import { IUserLogin, IUserRegister } from "../../utils/TypeScript";
 import { postAPI, getAPI } from "../../utils/FetchData";
-import { validRegister } from "../../utils/Valid";
+import { validRegister, validPhone } from "../../utils/Valid";
 
 export const login =
   (userLogin: IUserLogin) =>
@@ -108,5 +108,51 @@ export const googleLogin =
       dispatch({ type: ALERT, payload: { errors: err.response.data.msg } });
     }
   };
+
+  export const loginSMS =
+  (phone: string) => async (dispatch: Dispatch<IAuthType | IAlertType>) => {
+    const check = validPhone(phone)
+    if(!check) return dispatch({type: ALERT, payload: {errors: 'Phone number format is incorrect'}});
+    
+    try {
+      dispatch({ type: ALERT, payload: { loading: true } });
+      
+      const res = await postAPI("login_sms", { phone });
+      
+      if(!res.data.valid){
+        verifySMS(phone, dispatch)
+      }
+      
+    } catch (err: any) {
+      console.log(err.response.data.msg);
+      dispatch({ type: ALERT, payload: { errors: err.response.data.msg } });
+    }
+  };
+
+  export const verifySMS = async (phone: string, dispatch: Dispatch<IAuthType | IAlertType>)=>{
+    const code = prompt('Enter your code');
+    if(!code ) return;
+
+    try {
+      dispatch({ type: ALERT, payload: { loading: true } });
+      
+      const res = await postAPI("sms_verify", { phone, code });
+
+      dispatch({ type: AUTH, payload: res.data });
+
+      dispatch({ type: ALERT, payload: { success: res.data.msg } });
+
+      localStorage.setItem("logged", "TQLam");
+    } catch (err: any) {
+      await dispatch({ type: ALERT, payload: { errors: err.response.data.msg } });
+      setTimeout(() => {
+        verifySMS(phone, dispatch);
+        
+      }, 3000);
+    }
+
+    
+  }
+
 
 

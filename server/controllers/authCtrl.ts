@@ -9,15 +9,20 @@ import {
 } from "../config/generateToken";
 import sendMail from "../config/sendMail";
 import { validateEmail, validPhone } from "../middleware/valid";
-import { sendSms } from "../config/sendSMS";
+import { sendSms, smsOTP, smsVerify } from "../config/sendSMS";
 import { INewUser } from "../config/interface";
-import { IDecodeToken, IUser, IGPayload, IUserParams } from "../config/interface";
+import {
+  IDecodeToken,
+  IUser,
+  IGPayload,
+  IUserParams,
+} from "../config/interface";
 
 import { RequestClient } from "twilio";
 import { OAuth2Client } from "google-auth-library";
-import fetch from "node-fetch"
+import fetch from "node-fetch";
 
-const client = new OAuth2Client(`${process.env.MAIL_CLIENT_ID}`)
+const client = new OAuth2Client(`${process.env.MAIL_CLIENT_ID}`);
 const CLIENT_URL = `${process.env.BASE_URL}`;
 
 const authCtrl = {
@@ -61,20 +66,18 @@ const authCtrl = {
         jwt.verify(active_token, `${process.env.ACTIVE_TOKEN_SECRET}`)
       );
 
-      const newUser:any = decode;
-      
+      const newUser: any = decode;
+
       if (newUser === null || newUser === undefined)
-      return res.status(400).json({ msg: "Invalid authentication" });
-      
-      const user = await Users.findOne({account: newUser.account})
-      if(user) return res.status(400).json({ msg: "Account already exists" });
-      
+        return res.status(400).json({ msg: "Invalid authentication" });
+
+      const user = await Users.findOne({ account: newUser.account });
+      if (user) return res.status(400).json({ msg: "Account already exists" });
+
       const new_user = new Users(newUser);
       await new_user.save();
       res.json({ msg: "Account has been activated!" });
-      
     } catch (err: any) {
-      
       return res.status(500).json({ msg: err.message });
     }
   },
@@ -132,29 +135,32 @@ const authCtrl = {
     try {
       const { id_token } = req.body;
       const verify = await client.verifyIdToken({
-        idToken: id_token, audience: `${process.env.MAIL_CLIENT_ID}`
-      })
-      const {email, email_verified, name, picture} = <IGPayload> verify.getPayload();
+        idToken: id_token,
+        audience: `${process.env.MAIL_CLIENT_ID}`,
+      });
+      const { email, email_verified, name, picture } = <IGPayload>(
+        verify.getPayload()
+      );
 
-      if(!email_verified) return res.status(500).json({msg: 'Email verification failed'});
+      if (!email_verified)
+        return res.status(500).json({ msg: "Email verification failed" });
 
-      const password = email + 'your google secret password';
+      const password = email + "your google secret password";
       const passwordHash = await bcrypt.hash(password, 12);
-      const user = await Users.findOne({account: email});
+      const user = await Users.findOne({ account: email });
 
-      if(user){
-        loginUser(user, password, res)
-      }else{
+      if (user) {
+        loginUser(user, password, res);
+      } else {
         const user = {
-          name, 
+          name,
           account: email,
           password: passwordHash,
           avatar: picture,
-          type: 'login'
-        }
-        registerUser(user, res)
+          type: "login",
+        };
+        registerUser(user, res);
       }
-
     } catch (err: any) {
       return res.status(500).json({ msg: err });
     }
@@ -165,29 +171,68 @@ const authCtrl = {
       const { accessToken, userID } = req.body;
       const URL = `
         https://graph.facebook.com/v3.0/${userID}/?fields=id,name,email,picture&access_token=${accessToken}
-      `
+      `;
       const data = await fetch(URL)
-      .then(res=> res.json())
-      .catch(err=> res.status(500))
- 
+        .then((res) => res.json())
+        .catch((err) => res.status(500));
 
-      const {name, email, picture} = data;
-      const password = email + 'your facebook secret password';
+      const { name, email, picture } = data;
+      const password = email + "your facebook secret password";
       const passwordHash = await bcrypt.hash(password, 12);
-      const user = await Users.findOne({account: email});
+      const user = await Users.findOne({ account: email });
 
-      if(user){
-        loginUser(user, password, res)
-      }else{
+      if (user) {
+        loginUser(user, password, res);
+      } else {
         const user = {
-          name, 
+          name,
           account: email,
           password: passwordHash,
           avatar: picture.data.url,
-          type: 'login'
-        }
-        registerUser(user, res)
+          type: "login",
+        };
+        registerUser(user, res);
       }
+    } catch (err: any) {
+      return res.status(500).json({ msg: err });
+    }
+  },
+
+  loginSMS: async (req: Request, res: Response) => {
+    try {
+      const { phone } = req.body;
+      const data = await smsOTP(phone, 'sms')
+      res.json(data)
+
+    } catch (err: any) {
+      return res.status(500).json({ msg: err });
+    }
+  },
+
+  smsVerify: async (req: Request, res: Response) => {
+    try {
+      const { phone, code } = req.body;
+      const data = await smsVerify(phone, code)
+
+      if(!data?.valid) return res.status(400).json({ msg: 'Invalid authentication'});
+
+      const password = phone + "your phone secret password";
+      const passwordHash = await bcrypt.hash(password, 12);
+      const user = await Users.findOne({ account: phone });
+
+      if (user) {
+        loginUser(user, password, res);
+      } else {
+        const user = {
+          name: phone,
+          account: phone,
+          password: passwordHash,
+          type: "login",
+        };
+        registerUser(user, res);
+      }
+
+      res.json(data)
 
     } catch (err: any) {
       return res.status(500).json({ msg: err });
@@ -195,7 +240,7 @@ const authCtrl = {
   },
 };
 
-const loginUser = async (user: IUser, password:string, res: Response) => {
+const loginUser = async (user: IUser, password: string, res: Response) => {
   const isMatch = await bcrypt.compare(password, user.password);
 
   if (!isMatch) return res.status(400).json({ msg: "Password is incorrect" });
@@ -218,7 +263,7 @@ const loginUser = async (user: IUser, password:string, res: Response) => {
 
 const registerUser = async (user: IUserParams, res: Response) => {
   const newUser = new Users(user);
-  await newUser.save()
+  await newUser.save();
 
   const access_token = generateAccessToken({ id: newUser._id });
   const refresh_token = generateRefreshToken({ id: newUser._id });

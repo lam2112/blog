@@ -21,7 +21,6 @@ const Menu = () => {
 
   const navLinks = auth.access_token ? afLoginLinks : bfLoginLinks;
   const isActive = (pn: string) => {
-    console.log(pn);
     if (pn === pathname) return 'active'
   }
 

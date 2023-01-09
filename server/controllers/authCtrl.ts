@@ -15,6 +15,7 @@ import { IDecodeToken, IUser, IGPayload, IUserParams } from "../config/interface
 
 import { RequestClient } from "twilio";
 import { OAuth2Client } from "google-auth-library";
+import fetch from "node-fetch"
 
 const client = new OAuth2Client(`${process.env.MAIL_CLIENT_ID}`)
 const CLIENT_URL = `${process.env.BASE_URL}`;
@@ -149,6 +150,40 @@ const authCtrl = {
           account: email,
           password: passwordHash,
           avatar: picture,
+          type: 'login'
+        }
+        registerUser(user, res)
+      }
+
+    } catch (err: any) {
+      return res.status(500).json({ msg: err });
+    }
+  },
+
+  facebookLogin: async (req: Request, res: Response) => {
+    try {
+      const { accessToken, userID } = req.body;
+      const URL = `
+        https://graph.facebook.com/v3.0/${userID}/?fields=id,name,email,picture&access_token=${accessToken}
+      `
+      const data = await fetch(URL)
+      .then(res=> res.json())
+      .catch(err=> res.status(500))
+ 
+
+      const {name, email, picture} = data;
+      const password = email + 'your facebook secret password';
+      const passwordHash = await bcrypt.hash(password, 12);
+      const user = await Users.findOne({account: email});
+
+      if(user){
+        loginUser(user, password, res)
+      }else{
+        const user = {
+          name, 
+          account: email,
+          password: passwordHash,
+          avatar: picture.data.url,
           type: 'login'
         }
         registerUser(user, res)
